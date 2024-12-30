@@ -1,6 +1,6 @@
 # Chess-Tutor App (Under construction)
 
-##Purpose
+## Purpose
 You can use the app to learn chess and understand chess tactics from basics to advanced, compare your skills against a computer that can analyze your games, and then help you understand how best to get started playing chess.
 
 

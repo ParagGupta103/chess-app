@@ -1,8 +1,43 @@
 #Chessboard {
+    position: relative;
     display: grid;
     grid-template-columns: repeat(8,1fr);
     grid-template-rows: repeat(8,1fr);
-    width: min(800px, 100vw - 32px, 100vh - 32px);
+    width: min(800px, 100vw - 32px, 100vh - 140px);
     aspect-ratio: 1;
     background-color: black;
+}
+
+.promotion {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 16px;
+    background-color: rgba(0, 0, 0, 0.6);
+}
+
+.promotion .choices {
+    display: flex;
+    justify-content: center;
+    gap: 8px;
+    width: 100%;
+}
+
+.promotion .choices button {
+    width: 12.5%;
+    aspect-ratio: 1;
+    padding: 0;
+    border: none;
+    border-radius: 8px;
+    background-color: #ebecd0;
+    cursor: pointer;
+}
+
+.promotion .choices img {
+    width: 90%;
+    height: 90%;
+    object-fit: contain;
 }

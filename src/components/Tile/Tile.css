@@ -1,8 +1,17 @@
 
 .tile {
+    position: relative;
     display: flex;
     align-items: center;
     justify-content: center;
+    padding: 0;
+    border: none;
+    cursor: pointer;
+}
+
+.tile:focus-visible {
+    outline: 3px solid #4a90e2;
+    outline-offset: -3px;
 }
 
 .white-tile{
@@ -13,8 +22,41 @@
     background-color: #779556;
 }
 
+/* Selected square and the last move played */
+.white-tile.highlight{
+    background-color: #f5f682;
+}
+
+.black-tile.highlight{
+    background-color: #b9ca43;
+}
+
+.tile.in-check{
+    background-image: radial-gradient(circle, #ff0000 0%, #e70000 25%, rgba(169, 0, 0, 0) 89%);
+}
+
 .tile img{
     width: 90%;
     height: 90%;
     object-fit: contain;
+}
+
+/* Legal moves for the selected piece: a dot on empty squares, a ring around captures */
+.move-target::after,
+.capture-target::after{
+    content: '';
+    position: absolute;
+    pointer-events: none;
+}
+
+.move-target::after{
+    width: 30%;
+    height: 30%;
+    border-radius: 50%;
+    background-color: rgba(0, 0, 0, 0.15);
+}
+
+.capture-target::after{
+    inset: 0;
+    background: radial-gradient(transparent 0 69%, rgba(0, 0, 0, 0.15) 70%);
 }

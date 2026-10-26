@@ -1,20 +1,32 @@
+import type { Piece, Square } from 'chess.js'
 import './Tile.css'
+import { pieceImage, pieceLabel } from '../../game/pieces'
 
 interface Props {
-    square : number;
-    image?: string;
-
+    square: Square;
+    piece: Piece | null;
+    dark: boolean;
+    selected: boolean;
+    lastMove: boolean;
+    inCheck: boolean;
+    target?: 'move' | 'capture';
+    onClick: () => void;
 }
 
-// "assets/images/king_w.png" -> "white king"
-function pieceName(image: string){
-    const [type, colour] = image.split('/').pop()!.replace('.png','').split('_');
-    return `${colour === 'w' ? 'white' : 'black'} ${type}`;
-}
+export default function Tile({square, piece, dark, selected, lastMove, inCheck, target, onClick}: Props){
+    const className = [
+        'tile',
+        dark ? 'black-tile' : 'white-tile',
+        (selected || lastMove) && 'highlight',
+        inCheck && 'in-check',
+        target && `${target}-target`,
+    ].filter(Boolean).join(' ');
 
-export default function Tile({square,image}: Props){
-    const colour = (square%2 === 0) ? 'black-tile' : 'white-tile';
-    return <div className={`tile ${colour}`}>
-        {image && <img src={image} alt={pieceName(image)} />}
-    </div>
+    return <button
+        className={className}
+        aria-label={piece ? `${square}, ${pieceLabel(piece)}` : square}
+        onClick={onClick}
+    >
+        {piece && <img src={pieceImage(piece)} alt={pieceLabel(piece)} />}
+    </button>
 }

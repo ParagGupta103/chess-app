@@ -10,7 +10,7 @@ export const pieceNames: Record<PieceSymbol, string> = {
 }
 
 export function pieceImage({ type, color }: Piece) {
-    return `assets/images/${pieceNames[type]}_${color}.png`
+    return `${import.meta.env.BASE_URL}assets/images/${pieceNames[type]}_${color}.png`
 }
 
 // { type: 'k', color: 'w' } -> "white king"

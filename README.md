@@ -70,7 +70,14 @@ Type-checks the code and builds the app for production to the `dist` folder.
 
 ### `yarn preview`
 
-Serves the production build locally to check it before deploying.
+Serves the production build locally at [http://localhost:4173/chess-app/](http://localhost:4173/chess-app/) to check it before deploying.
+
+## Deployment
+Every push to `master` deploys the app to GitHub Pages at [https://paraggupta103.github.io/chess-app/](https://paraggupta103.github.io/chess-app/). The [deploy workflow](.github/workflows/deploy.yml) lints, tests and builds the app, then publishes the `dist` folder. You can also run it manually from the Actions tab.
+
+One-time setup: in the repository's **Settings → Pages**, set **Source** to **GitHub Actions**.
+
+The site is served from `/chess-app/`, which is set as `base` in [vite.config.ts](vite.config.ts). If the repository is renamed, update `base` to match.
 
 ## Licensing note
 The Stockfish engine is licensed under [GPL-3.0](https://github.com/nmrugg/stockfish.js/blob/master/Copying.txt), and the production build includes it. If you deploy the app publicly, you need to meet the GPL's terms for Stockfish, which includes making its source available. Check what the GPL means for this project before you release it as closed source.

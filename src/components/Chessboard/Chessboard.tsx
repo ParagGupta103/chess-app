@@ -7,17 +7,19 @@ import type { ChessGame } from '../../game/useChessGame'
 
 interface Props {
     game: ChessGame;
+    flipped?: boolean; // show the board from black's side
+    disabled?: boolean; // ignore clicks, e.g. while the computer is thinking
 }
 
 const promotionChoices = ['q', 'r', 'b', 'n'] as const
 
-export default function Chessboard({ game }: Props) {
+export default function Chessboard({ game, flipped, disabled }: Props) {
     const [selected, setSelected] = useState<Square | null>(null)
     const [promotion, setPromotion] = useState<Move | null>(null) // pawn move waiting for a piece choice
     const targets = selected ? game.movesFrom(selected) : []
 
     function handleClick(square: Square) {
-        if (game.result || promotion) return
+        if (disabled || game.result || promotion) return
 
         const move = targets.find(m => m.to === square)
         if (move?.isPromotion()) {
@@ -58,7 +60,7 @@ export default function Chessboard({ game }: Props) {
     })
 
     return <div id='Chessboard'>
-        {board}
+        {flipped ? board.reverse() : board}
         {promotion && <div className='promotion'>
             <div className='choices'>
                 {promotionChoices.map(type =>

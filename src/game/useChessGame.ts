@@ -1,5 +1,5 @@
 import { Chess, DEFAULT_POSITION, type Move, type PieceSymbol, type Square } from 'chess.js'
-import { useState } from 'react'
+import { useCallback, useState } from 'react'
 
 // Text describing how the game ended, or null while it is still going
 function result(game: Chess) {
@@ -15,9 +15,19 @@ export function useChessGame(fen = DEFAULT_POSITION) {
     // chess.js mutates itself in place, so keep one instance and bump a counter to re-render
     const [game] = useState(() => new Chess(fen))
     const [, setVersion] = useState(0)
-    const changed = () => setVersion(v => v + 1)
+
+    const move = useCallback((from: Square, to: Square, promotion?: PieceSymbol) => {
+        try {
+            game.move({ from, to, promotion })
+        } catch {
+            return false
+        }
+        setVersion(v => v + 1)
+        return true
+    }, [game])
 
     return {
+        fen: game.fen(),
         board: game.board(),
         turn: game.turn(),
         inCheck: game.inCheck(),
@@ -26,19 +36,7 @@ export function useChessGame(fen = DEFAULT_POSITION) {
         pieceAt: (square: Square) => game.get(square),
         movesFrom: (square: Square): Move[] =>
             game.isGameOver() ? [] : game.moves({ square, verbose: true }),
-        move(from: Square, to: Square, promotion?: PieceSymbol) {
-            try {
-                game.move({ from, to, promotion })
-            } catch {
-                return false
-            }
-            changed()
-            return true
-        },
-        reset() {
-            game.load(fen)
-            changed()
-        },
+        move,
     }
 }
 

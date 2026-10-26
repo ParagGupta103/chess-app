@@ -1,28 +1,32 @@
+import type { Color } from 'chess.js'
 import { useState } from 'react'
 import './Game.css'
 import Chessboard from '../Chessboard/Chessboard'
+import { levels } from '../../engine/levels'
+import type { GameSettings } from '../../game/settings'
 import { useChessGame } from '../../game/useChessGame'
+import { useComputerOpponent } from '../../game/useComputerOpponent'
 
 interface Props {
+    settings: GameSettings;
+    onNewGame: () => void;
     fen?: string; // starting position, defaults to the normal one
 }
 
-export default function Game({ fen }: Props) {
+export default function Game({ settings, onNewGame, fen }: Props) {
     const game = useChessGame(fen)
-    // Changing the board's key remounts it, clearing any selection from the old game
-    const [gameNumber, setGameNumber] = useState(0)
+    const [player] = useState<Color>(() =>
+        settings.color === 'random' ? (Math.random() < 0.5 ? 'w' : 'b') : settings.color)
+    const computer = settings.opponent === 'computer' ? (player === 'w' ? 'b' : 'w') : null
+    const { thinking, error } = useComputerOpponent(game, computer, levels[settings.level - 1])
 
-    function newGame() {
-        game.reset()
-        setGameNumber(n => n + 1)
-    }
-
-    const side = game.turn === 'w' ? 'White' : 'Black'
-    const status = game.result ?? `${side} to move${game.inCheck ? ' — check!' : ''}`
+    const turn = computer ? 'Your move' : `${game.turn === 'w' ? 'White' : 'Black'} to move`
+    const status = error ?? game.result ?? (thinking ? 'Computer is thinking…' : turn) +
+        (game.inCheck ? ' — check!' : '')
 
     return <div className='game'>
         <output className='status'>{status}</output>
-        <Chessboard key={gameNumber} game={game} />
-        <button className='text-button' onClick={newGame}>New game</button>
+        <Chessboard game={game} flipped={computer === 'w'} disabled={thinking || !!error} />
+        <button className='text-button' onClick={onNewGame}>New game</button>
     </div>
 }

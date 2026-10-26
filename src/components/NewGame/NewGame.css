@@ -1,0 +1,73 @@
+.new-game {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    width: min(420px, 100vw - 32px);
+    padding: 24px;
+    box-sizing: border-box;
+    border-radius: 12px;
+    background-color: #262421;
+    color: #ebecd0;
+}
+
+.new-game h1 {
+    margin: 0;
+    font-size: 1.5rem;
+}
+
+.new-game fieldset {
+    margin: 0;
+    padding: 0;
+    border: none;
+}
+
+.new-game legend,
+.new-game .level {
+    margin-bottom: 8px;
+    font-weight: 600;
+}
+
+.choice {
+    display: flex;
+    gap: 8px;
+}
+
+.choice label {
+    flex: 1;
+    padding: 8px;
+    border-radius: 6px;
+    background-color: #3c3a36;
+    text-align: center;
+    cursor: pointer;
+}
+
+.choice label:has(input:checked) {
+    background-color: #779556;
+    color: #fff;
+}
+
+.choice label:has(input:focus-visible) {
+    outline: 3px solid #4a90e2;
+}
+
+/* Hide the radio circle but keep it focusable */
+.choice input {
+    position: absolute;
+    opacity: 0;
+    pointer-events: none;
+}
+
+.new-game .level {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.new-game select {
+    padding: 8px;
+    border: none;
+    border-radius: 6px;
+    background-color: #3c3a36;
+    color: inherit;
+    font: inherit;
+}

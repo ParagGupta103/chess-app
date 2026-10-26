@@ -1,0 +1,158 @@
+.analysis {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 12px;
+    color: #ebecd0;
+}
+
+.analysis progress {
+    width: min(400px, 100vw - 32px);
+    accent-color: #779556;
+}
+
+.analysis-main {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    align-items: flex-start;
+    gap: 16px;
+}
+
+.analysis-board {
+    display: flex;
+    gap: 8px;
+}
+
+/* Leave room for the evaluation bar and the side panel */
+.analysis #Chessboard {
+    width: min(560px, 100vw - 64px, 100vh - 160px);
+}
+
+.eval-bar {
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    width: 16px;
+    overflow: hidden;
+    border-radius: 4px;
+    background-color: #403d39;
+}
+
+/* White's share sits at the bottom normally, at the top when the board is flipped */
+.eval-bar.flipped {
+    justify-content: flex-start;
+}
+
+.eval-white {
+    background-color: #f0f0f0;
+    transition: height 0.3s;
+}
+
+.analysis-panel {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    width: min(300px, 100vw - 32px);
+    padding: 16px;
+    box-sizing: border-box;
+    border-radius: 12px;
+    background-color: #262421;
+}
+
+.summary {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin: 0;
+}
+
+.summary dt {
+    font-weight: 600;
+}
+
+.summary dd {
+    margin: 0;
+    font-size: 0.9rem;
+}
+
+/* Room for all three lines, so the move list doesn't jump when "Best was …" comes and goes */
+.move-detail {
+    min-height: 4.6em;
+}
+
+.move-detail p {
+    margin: 0 0 4px;
+}
+
+.move-detail .evaluation {
+    color: #bababa;
+    font-size: 0.9rem;
+}
+
+.move-list {
+    max-height: 280px;
+    overflow-y: auto;
+    border-radius: 6px;
+    background-color: #1d1c1a;
+}
+
+.move-row {
+    display: grid;
+    grid-template-columns: 2.5em 1fr 1fr;
+    align-items: center;
+}
+
+.move-row:nth-child(even) {
+    background-color: #2a2926;
+}
+
+.move-number {
+    padding-left: 8px;
+    color: #8b8987;
+}
+
+.move {
+    padding: 4px 8px;
+    border: none;
+    background: none;
+    color: inherit;
+    font: inherit;
+    text-align: left;
+}
+
+button.move {
+    cursor: pointer;
+}
+
+button.move:hover,
+button.move.selected {
+    background-color: #4d4a45;
+}
+
+.inaccuracy {
+    color: #f0c15c;
+}
+
+.mistake {
+    color: #e58f2a;
+}
+
+.blunder {
+    color: #ff6b5e;
+}
+
+.kind.best,
+.kind.good {
+    color: #a3cf73;
+}
+
+.analysis-nav {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 6px;
+}
+
+.analysis-nav .text-button {
+    padding: 8px 0;
+}

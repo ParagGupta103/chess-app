@@ -11,9 +11,10 @@ You can use the app to learn chess and understand chess tactics from basics to a
 - **All the rules of chess.** Only legal moves are allowed, including castling, en passant and promotion (you choose the piece). Check, checkmate and draws (stalemate, insufficient material, threefold repetition and the 50-move rule) are detected.
 - **Move hints.** Selecting a piece shows its legal moves as dots, and pieces you can capture get a ring. The last move and a king in check are highlighted.
 - **Keyboard play.** Every square is a button, so you can use Tab and Enter to play.
+- **Resign** at any point to end a game.
+- **Game review.** After a game ends, **Analyze game** has Stockfish evaluate every position at full strength. Each move is labelled best, good, inaccuracy (?!), mistake (?) or blunder (??). For flagged moves, the better move is highlighted on the board. Each side gets an accuracy percentage and a count of inaccuracies, mistakes and blunders. An evaluation bar shows who is ahead. Step through the game with the move list, the buttons, or the ← → Home End keys.
 
 ### Planned
-- Analysis of finished games: the score of each position, the best moves, and labels for mistakes and blunders
 - Tactics puzzles from basic to advanced
 - Lessons for beginners
 - Tracking your progress and skill over time
@@ -22,15 +23,18 @@ You can use the app to learn chess and understand chess tactics from basics to a
 - **Rules:** [chess.js](https://github.com/jhlywa/chess.js) handles move generation, legality and game-over detection. [src/game/useChessGame.ts](src/game/useChessGame.ts) wraps it for React.
 - **Computer opponent:** [Stockfish 19](https://github.com/nmrugg/stockfish.js) (the single-threaded "lite" WebAssembly build, about 1.8 MB) runs in a Web Worker so the page stays responsive. [src/engine/engine.ts](src/engine/engine.ts) talks to it using the UCI protocol.
 - **Difficulty levels:** [src/engine/levels.ts](src/engine/levels.ts) sets each level using Stockfish's skill level (0–20), a search depth and a time limit. Stockfish's weakest setting is still strong, so levels 1–3 also sometimes play a random legal move.
+- **Game review:** [src/analysis/analysis.ts](src/analysis/analysis.ts) replays the game and converts each engine score to White's chance of winning. A move is labelled by how much it lowered the mover's chance: 5, 10 or 15 percentage points make an inaccuracy, mistake or blunder. These are the same thresholds Lichess uses, and accuracy uses Lichess's formula too. Each position is searched to depth 12, with at most 0.6 s per position.
 
 Everything runs in the browser. No server is needed beyond static hosting.
 
 ## Project structure
 ```
 src/
+  analysis/       move classification, accuracy and the hook that runs the analysis
   components/
     NewGame/      setup screen: opponent, side and level
-    Game/         status line, board and the New game button
+    Game/         status line, board, and the Resign, Analyze game and New game buttons
+    Analysis/     game review: evaluation bar, move list, summary and navigation
     Chessboard/   selecting pieces, highlighting moves, choosing a promotion piece
     Tile/         one square of the board
   engine/         Stockfish worker wrapper and difficulty levels

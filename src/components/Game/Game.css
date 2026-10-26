@@ -10,3 +10,10 @@
     color: #ebecd0;
     font-size: 1.25rem;
 }
+
+.actions {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 8px;
+}

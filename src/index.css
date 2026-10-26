@@ -26,3 +26,16 @@ code {
 .text-button:hover {
   background-color: #8aab67;
 }
+
+.text-button.secondary {
+  background-color: #3c3a36;
+}
+
+.text-button.secondary:hover {
+  background-color: #4d4a45;
+}
+
+.text-button:disabled {
+  opacity: 0.4;
+  cursor: default;
+}

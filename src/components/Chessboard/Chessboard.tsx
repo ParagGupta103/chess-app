@@ -1,31 +1,33 @@
-import { SQUARES, type Move, type Square } from 'chess.js'
+import { SQUARES, type Move, type PieceSymbol, type Square } from 'chess.js'
 import { useState } from 'react'
 import './Chessboard.css'
 import Tile from '../Tile/Tile'
 import { pieceImage, pieceNames } from '../../game/pieces'
-import type { ChessGame } from '../../game/useChessGame'
+import type { BoardView } from '../../game/useChessGame'
 
 interface Props {
-    game: ChessGame;
+    game: BoardView;
+    onMove?: (from: Square, to: Square, promotion?: PieceSymbol) => void; // leave out for a board you can only look at
     flipped?: boolean; // show the board from black's side
     disabled?: boolean; // ignore clicks, e.g. while the computer is thinking
+    hint?: { from: Square; to: Square }; // a move to point out, e.g. the engine's suggestion
 }
 
 const promotionChoices = ['q', 'r', 'b', 'n'] as const
 
-export default function Chessboard({ game, flipped, disabled }: Props) {
+export default function Chessboard({ game, onMove, flipped, disabled, hint }: Props) {
     const [selected, setSelected] = useState<Square | null>(null)
     const [promotion, setPromotion] = useState<Move | null>(null) // pawn move waiting for a piece choice
     const targets = selected ? game.movesFrom(selected) : []
 
     function handleClick(square: Square) {
-        if (disabled || game.result || promotion) return
+        if (disabled || !onMove || game.result || promotion) return
 
         const move = targets.find(m => m.to === square)
         if (move?.isPromotion()) {
             setPromotion(move)
         } else if (move) {
-            game.move(move.from, move.to)
+            onMove(move.from, move.to)
             setSelected(null)
         } else {
             // Select one of your own pieces, or clear the selection
@@ -36,7 +38,7 @@ export default function Chessboard({ game, flipped, disabled }: Props) {
 
     function promote(type: typeof promotionChoices[number] | null) {
         if (promotion && type) {
-            game.move(promotion.from, promotion.to, type)
+            onMove?.(promotion.from, promotion.to, type)
             setSelected(null)
         }
         setPromotion(null)
@@ -54,6 +56,7 @@ export default function Chessboard({ game, flipped, disabled }: Props) {
             selected={square === selected}
             lastMove={square === game.lastMove?.from || square === game.lastMove?.to}
             inCheck={game.inCheck && piece?.type === 'k' && piece.color === game.turn}
+            hint={square === hint?.from || square === hint?.to}
             target={target && (target.isCapture() ? 'capture' : 'move')}
             onClick={() => handleClick(square)}
         />

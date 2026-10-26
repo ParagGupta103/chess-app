@@ -6,15 +6,16 @@ class FakeWorker {
     onmessage: ((e: { data: string }) => void) | null = null
     onerror: (() => void) | null = null
     bestMoves = ['e2e4']
+    info: string[] = [] // sent before each "bestmove"
 
     postMessage(command: string) {
         this.sent.push(command)
-        const reply =
-            command === 'uci' ? 'uciok' :
-            command === 'isready' ? 'readyok' :
-            command.startsWith('go') ? `bestmove ${this.bestMoves.shift()} ponder a7a6` :
-            null
-        if (reply) setTimeout(() => this.onmessage?.({ data: reply }))
+        const replies =
+            command === 'uci' ? ['uciok'] :
+            command === 'isready' ? ['readyok'] :
+            command.startsWith('go') ? [...this.info, `bestmove ${this.bestMoves.shift()} ponder a7a6`] :
+            []
+        replies.forEach(reply => setTimeout(() => this.onmessage?.({ data: reply })))
     }
 }
 
@@ -63,4 +64,33 @@ test('rejects when the worker fails to load', async () => {
     worker.onerror?.()
     await expect(engine.bestMove('fen', limits)).rejects.toThrow('Stockfish failed to load')
     expect(engine.failed).toBe(true)
+})
+
+test('analyses at full strength and reports the last score', async () => {
+    const { worker, engine } = setup()
+    worker.info = [
+        'info depth 1 seldepth 1 multipv 1 score cp 12 nodes 20 pv e2e4',
+        'info depth 2 seldepth 3 multipv 1 score cp 35 lowerbound nodes 80 pv d2d4',
+        'info depth 3 seldepth 4 multipv 1 score cp 28 nodes 200 pv d2d4 d7d5',
+    ]
+    worker.bestMoves = ['d2d4']
+
+    await expect(engine.analyse('fen', { depth: 12, movetime: 500 }))
+        .resolves.toEqual({ score: { cp: 28 }, best: { from: 'd2', to: 'd4', promotion: undefined } })
+    expect(worker.sent).toContain('setoption name Skill Level value 20')
+    expect(worker.sent).toContain('go depth 12 movetime 500')
+})
+
+test('reports mate scores', async () => {
+    const { worker, engine } = setup()
+    worker.info = ['info depth 5 score mate -2 nodes 900 pv e1d1 d8d1']
+    worker.bestMoves = ['e1d1']
+    await expect(engine.analyse('fen', { depth: 12, movetime: 500 }))
+        .resolves.toMatchObject({ score: { mate: -2 } })
+})
+
+test('has no best move when there are no legal moves', async () => {
+    const { worker, engine } = setup()
+    worker.bestMoves = ['(none)']
+    await expect(engine.analyse('fen', { depth: 12, movetime: 500 })).resolves.toMatchObject({ best: null })
 })

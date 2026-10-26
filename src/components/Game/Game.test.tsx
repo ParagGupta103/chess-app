@@ -1,4 +1,4 @@
-import { Chess } from 'chess.js'
+import { Chess, DEFAULT_POSITION } from 'chess.js'
 import { fireEvent, render, screen } from '@testing-library/react'
 import Game from './Game'
 import { levels } from '../../engine/levels'
@@ -10,8 +10,10 @@ vi.mock('../../engine/engine', () => ({ getEngine: () => ({ bestMove }), stopEng
 const friend: GameSettings = { opponent: 'friend', color: 'w', level: 1 }
 // Level 4 is the lowest that never plays random moves
 const computer = (color: 'w' | 'b'): GameSettings => ({ opponent: 'computer', color, level: 4 })
+const onAnalyze = vi.fn()
 const renderGame = (settings = friend, fen?: string) =>
-  render(<Game settings={settings} onNewGame={() => {}} fen={fen} />)
+  render(<Game settings={settings} onNewGame={() => {}} onAnalyze={onAnalyze} fen={fen} />)
+const button = (name: string) => screen.queryByRole('button', { name })
 
 // Squares are buttons labelled "e4" when empty or "e4, white pawn" when occupied
 const square = (name: string) => screen.getByRole('button', { name: new RegExp(`^${name}(,|$)`) })
@@ -172,5 +174,48 @@ describe('against the computer', () => {
     bestMove.mockRejectedValue(new Error('worker failed'))
     renderGame(computer('b'))
     expect(await screen.findByText('The computer opponent failed to load')).toBeInTheDocument()
+  })
+})
+
+describe('ending the game', () => {
+  beforeEach(() => {
+    onAnalyze.mockReset()
+  })
+
+  test('the side to move can resign', () => {
+    renderGame()
+    play('e2e4')
+    expect(button('Analyze game')).not.toBeInTheDocument()
+
+    fireEvent.click(button('Resign')!)
+    expect(status()).toHaveTextContent('Black resigned — White wins')
+    expect(button('Resign')).not.toBeInTheDocument()
+    click('e7')
+    expect(square('e5')).not.toHaveClass('move-target')
+  })
+
+  test('you can resign while the computer is thinking', () => {
+    bestMove.mockReturnValue(new Promise(() => {}))
+    renderGame(computer('b'))
+    fireEvent.click(button('Resign')!)
+    expect(status()).toHaveTextContent('Black resigned — White wins')
+  })
+
+  test('a finished game can be analyzed', () => {
+    renderGame()
+    play('f2f3', 'e7e5', 'g2g4', 'd8h4')
+    fireEvent.click(button('Analyze game')!)
+    expect(onAnalyze).toHaveBeenCalledWith({
+      startFen: DEFAULT_POSITION,
+      moves: ['f3', 'e5', 'g4', 'Qh4#'],
+      result: 'Checkmate — Black wins',
+      flipped: false,
+    })
+  })
+
+  test('a game with no moves has nothing to analyze', () => {
+    renderGame()
+    fireEvent.click(button('Resign')!)
+    expect(button('Analyze game')).not.toBeInTheDocument()
   })
 })

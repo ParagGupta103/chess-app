@@ -9,15 +9,17 @@ interface Props {
     selected: boolean;
     lastMove: boolean;
     inCheck: boolean;
+    hint: boolean;
     target?: 'move' | 'capture';
     onClick: () => void;
 }
 
-export default function Tile({square, piece, dark, selected, lastMove, inCheck, target, onClick}: Props){
+export default function Tile({square, piece, dark, selected, lastMove, inCheck, hint, target, onClick}: Props){
     const className = [
         'tile',
         dark ? 'black-tile' : 'white-tile',
         (selected || lastMove) && 'highlight',
+        hint && 'hint',
         inCheck && 'in-check',
         target && `${target}-target`,
     ].filter(Boolean).join(' ');

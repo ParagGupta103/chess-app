@@ -60,3 +60,12 @@
     inset: 0;
     background: radial-gradient(transparent 0 69%, rgba(0, 0, 0, 0.15) 70%);
 }
+
+/* A move being pointed out, such as the engine's suggestion during a review */
+.white-tile.hint{
+    background-color: #b3cde8;
+}
+
+.black-tile.hint{
+    background-color: #7fa3c4;
+}

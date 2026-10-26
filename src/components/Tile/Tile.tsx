@@ -1,19 +1,20 @@
 import './Tile.css'
 
 interface Props {
-    sqaure : number;
-    peice?: string;
+    square : number;
+    image?: string;
 
 }
-export default function Tile({sqaure,peice}: Props){
-    if (sqaure%2 === 0){
-        return <div className='tile black-tile'>
-            <img src={peice} />
-        </div>
-    }
-    else{
-        return <div className='tile white-tile'>
-            <img src={peice} />
-        </div>
-    }
+
+// "assets/images/king_w.png" -> "white king"
+function pieceName(image: string){
+    const [type, colour] = image.split('/').pop()!.replace('.png','').split('_');
+    return `${colour === 'w' ? 'white' : 'black'} ${type}`;
+}
+
+export default function Tile({square,image}: Props){
+    const colour = (square%2 === 0) ? 'black-tile' : 'white-tile';
+    return <div className={`tile ${colour}`}>
+        {image && <img src={image} alt={pieceName(image)} />}
+    </div>
 }

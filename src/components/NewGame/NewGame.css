@@ -22,7 +22,7 @@
 }
 
 .new-game legend,
-.new-game .level {
+.new-game .field {
     margin-bottom: 8px;
     font-weight: 600;
 }
@@ -57,7 +57,7 @@
     pointer-events: none;
 }
 
-.new-game .level {
+.new-game .field {
     display: flex;
     flex-direction: column;
     gap: 8px;

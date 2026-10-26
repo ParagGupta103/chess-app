@@ -1,5 +1,5 @@
 import { Chess, DEFAULT_POSITION } from 'chess.js'
-import { fireEvent, render, screen } from '@testing-library/react'
+import { act, fireEvent, render, screen } from '@testing-library/react'
 import Game from './Game'
 import { levels } from '../../engine/levels'
 import type { GameSettings } from '../../game/settings'
@@ -7,9 +7,9 @@ import type { GameSettings } from '../../game/settings'
 const bestMove = vi.hoisted(() => vi.fn())
 vi.mock('../../engine/engine', () => ({ getEngine: () => ({ bestMove }), stopEngine: () => {} }))
 
-const friend: GameSettings = { opponent: 'friend', color: 'w', level: 1 }
+const friend: GameSettings = { opponent: 'friend', color: 'w', level: 1, timeControl: 'none' }
 // Level 4 is the lowest that never plays random moves
-const computer = (color: 'w' | 'b'): GameSettings => ({ opponent: 'computer', color, level: 4 })
+const computer = (color: 'w' | 'b'): GameSettings => ({ opponent: 'computer', color, level: 4, timeControl: 'none' })
 const onAnalyze = vi.fn()
 const renderGame = (settings = friend, fen?: string) =>
   render(<Game settings={settings} onNewGame={() => {}} onAnalyze={onAnalyze} fen={fen} />)
@@ -217,5 +217,150 @@ describe('ending the game', () => {
     renderGame()
     fireEvent.click(button('Resign')!)
     expect(button('Analyze game')).not.toBeInTheDocument()
+  })
+})
+
+describe('dragging pieces', () => {
+  // jsdom has no layout, so say which square is under the pointer when it's released
+  function dropOn(name: string) {
+    document.elementFromPoint = () => square(name)
+    fireEvent.pointerUp(window, { clientX: 100, clientY: 100 })
+  }
+  const pickUp = (name: string) => {
+    fireEvent.pointerDown(square(name), { button: 0, clientX: 0, clientY: 0 })
+    fireEvent.pointerMove(window, { clientX: 100, clientY: 100 })
+  }
+
+  test('drops a piece on a legal square', () => {
+    renderGame()
+    pickUp('e2')
+    expect(square('e2')).toHaveClass('dragging')
+    expect(square('e4')).toHaveClass('move-target')
+
+    dropOn('e4')
+    expect(square('e4')).toHaveAccessibleName('e4, white pawn')
+    expect(square('e2')).toHaveAccessibleName('e2')
+    expect(status()).toHaveTextContent('Black to move')
+  })
+
+  test('leaves the piece selected when dropped on an illegal square', async () => {
+    renderGame()
+    pickUp('e2')
+    dropOn('e5')
+    expect(square('e2')).toHaveAccessibleName('e2, white pawn')
+    expect(square('e2')).toHaveClass('highlight')
+    expect(square('e4')).toHaveClass('move-target')
+
+    // Clicks are ignored until the release has finished, then click-to-move works from here
+    await new Promise(resolve => setTimeout(resolve))
+    click('e4')
+    expect(square('e4')).toHaveAccessibleName('e4, white pawn')
+  })
+
+  test('asks for the promotion piece after a drag', () => {
+    renderGame(friend, '4k3/P7/8/8/8/8/8/4K3 w - - 0 1')
+    pickUp('a7')
+    dropOn('a8')
+    fireEvent.click(button('Promote to rook')!)
+    expect(square('a8')).toHaveAccessibleName('a8, white rook')
+  })
+
+  test('cannot pick up the opponent\'s pieces', () => {
+    renderGame()
+    pickUp('e7')
+    expect(square('e7')).not.toHaveClass('dragging')
+    dropOn('e5')
+    expect(square('e7')).toHaveAccessibleName('e7, black pawn')
+  })
+})
+
+describe('the clock', () => {
+  const timed = (timeControl: string, settings = friend): GameSettings => ({ ...settings, timeControl })
+  const clock = (name: string) => screen.getByRole('timer', { name })
+  const wait = (ms: number) => act(() => { vi.advanceTimersByTime(ms) })
+
+  beforeEach(() => {
+    vi.useFakeTimers()
+  })
+  afterEach(() => {
+    vi.useRealTimers()
+  })
+
+  test('is hidden without a time control', () => {
+    renderGame()
+    expect(screen.queryByRole('timer')).not.toBeInTheDocument()
+  })
+
+  test('starts with the first move and adds the increment after each move', () => {
+    renderGame(timed('1+2'))
+    expect(clock('White')).toHaveTextContent('1:00')
+    wait(5000)
+    expect(clock('White')).toHaveTextContent('1:00') // nothing runs before the first move
+
+    play('e2e4')
+    wait(10000)
+    expect(clock('White')).toHaveTextContent('1:00')
+    expect(clock('Black')).toHaveTextContent('0:50')
+    expect(clock('Black')).toHaveClass('running')
+
+    play('e7e5')
+    expect(clock('Black')).toHaveTextContent('0:52')
+    wait(3000)
+    expect(clock('White')).toHaveTextContent('0:57')
+  })
+
+  test('running out of time loses the game', () => {
+    renderGame(timed('1+0'))
+    play('e2e4')
+    wait(60000)
+    expect(status()).toHaveTextContent('Black ran out of time — White wins')
+    expect(clock('Black')).toHaveTextContent('0:00.0')
+    click('e7')
+    expect(square('e5')).not.toHaveClass('move-target')
+  })
+
+  test('running out of time is a draw if the opponent cannot checkmate', () => {
+    renderGame(timed('1+0'), '4k3/8/8/8/8/8/4P3/4K3 b - - 0 1')
+    play('e8d7')
+    wait(60000)
+    expect(status()).toHaveTextContent('Draw — White ran out of time, but Black cannot checkmate')
+  })
+
+  test('stops when the game ends', () => {
+    renderGame(timed('5+0'))
+    play('e2e4')
+    wait(4000)
+    fireEvent.click(button('Resign')!)
+    wait(10000)
+    expect(clock('Black')).toHaveTextContent('4:56')
+    expect(clock('Black')).not.toHaveClass('running')
+  })
+
+  test('labels the clocks and puts yours at the bottom against the computer', () => {
+    bestMove.mockReturnValue(new Promise(() => {}))
+    renderGame(timed('5+0', computer('b')))
+    const [top, bottom] = screen.getAllByRole('timer')
+    expect(top).toHaveAccessibleName('Computer')
+    expect(bottom).toHaveAccessibleName('You')
+  })
+
+  test('the computer thinks faster when it is short of time', async () => {
+    let reply: (move: { from: string; to: string }) => void = () => {}
+    bestMove.mockReset()
+    bestMove
+      .mockReturnValueOnce(new Promise(resolve => { reply = resolve }))
+      .mockReturnValue(new Promise(() => {}))
+    renderGame(timed('1+0', { ...computer('w'), level: 8 }))
+    const movetime = () => bestMove.mock.lastCall![1].movetime
+
+    // With a minute left it may use a thirtieth of it, 2 s, which is level 8's own limit anyway
+    play('e2e4')
+    expect(movetime()).toBe(2000)
+
+    // After spending 45 s on that move it has 15 s left, so a thirtieth is 0.5 s
+    wait(45000)
+    await act(async () => reply({ from: 'e7', to: 'e5' }))
+    play('d2d4')
+    expect(movetime()).toBe(500)
   })
 })

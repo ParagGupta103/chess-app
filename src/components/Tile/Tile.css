@@ -36,6 +36,7 @@
 }
 
 .tile img{
+    user-select: none;
     width: 90%;
     height: 90%;
     object-fit: contain;
@@ -68,4 +69,9 @@
 
 .black-tile.hint{
     background-color: #7fa3c4;
+}
+
+/* The piece left behind while it is being dragged */
+.tile.dragging img{
+    opacity: 0.3;
 }

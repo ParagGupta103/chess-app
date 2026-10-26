@@ -17,3 +17,14 @@
     justify-content: center;
     gap: 8px;
 }
+
+.board-column {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+/* Make room for the clocks above and below the board */
+.board-column:has(.clock) #Chessboard {
+    width: min(800px, 100vw - 32px, 100vh - 230px);
+}

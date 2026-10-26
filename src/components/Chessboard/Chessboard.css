@@ -41,3 +41,17 @@
     height: 90%;
     object-fit: contain;
 }
+
+/* Stop touch drags on the board from scrolling the page */
+#Chessboard.playable {
+    touch-action: none;
+}
+
+/* The piece following the pointer while dragging */
+.drag-piece {
+    position: fixed;
+    z-index: 10;
+    transform: translate(-50%, -50%);
+    pointer-events: none;
+    user-select: none;
+}

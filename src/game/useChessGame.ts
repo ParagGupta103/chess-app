@@ -2,11 +2,18 @@ import { Chess, DEFAULT_POSITION, type Color, type Move, type PieceSymbol, type 
 import { useCallback, useState } from 'react'
 
 const sideName = (color: Color) => color === 'w' ? 'White' : 'Black'
+const other = (color: Color): Color => color === 'w' ? 'b' : 'w'
 
-// Text describing how the game ended, or null while it is still going
-function result(game: Chess, resigned: Color | null) {
-    if (resigned) return `${sideName(resigned)} resigned — ${sideName(resigned === 'w' ? 'b' : 'w')} wins`
-    if (game.isCheckmate()) return `Checkmate — ${sideName(game.turn() === 'w' ? 'b' : 'w')} wins`
+// Whether `color` has the material to ever checkmate. Simplified from the official rule:
+// a lone king, or a king with a single bishop or knight, cannot.
+function canCheckmate(game: Chess, color: Color) {
+    const pieces = game.board().flat().filter(p => p && p.color === color && p.type !== 'k')
+    return pieces.length >= 2 || pieces.some(p => p!.type === 'p' || p!.type === 'r' || p!.type === 'q')
+}
+
+// Text describing how the game ended by the rules of play, or null while it is still going
+function result(game: Chess) {
+    if (game.isCheckmate()) return `Checkmate — ${sideName(other(game.turn()))} wins`
     if (game.isStalemate()) return 'Draw by stalemate'
     if (game.isInsufficientMaterial()) return 'Draw by insufficient material'
     if (game.isThreefoldRepetition()) return 'Draw by threefold repetition'
@@ -14,9 +21,10 @@ function result(game: Chess, resigned: Color | null) {
     return null
 }
 
-// Everything the board needs to draw a position and offer its legal moves
-export function viewOf(game: Chess, resigned: Color | null = null) {
-    const over = result(game, resigned)
+// Everything the board needs to draw a position and offer its legal moves.
+// `ended` is set when the game finished another way, by resignation or on time.
+export function viewOf(game: Chess, ended: string | null = null) {
+    const over = ended ?? result(game)
     return {
         fen: game.fen(),
         board: game.board(),
@@ -35,7 +43,7 @@ export type BoardView = ReturnType<typeof viewOf>
 export function useChessGame(fen = DEFAULT_POSITION) {
     // chess.js mutates itself in place, so keep one instance and bump a counter to re-render
     const [game] = useState(() => new Chess(fen))
-    const [resigned, setResigned] = useState<Color | null>(null)
+    const [ended, setEnded] = useState<string | null>(null)
     const [, setVersion] = useState(0)
 
     const move = useCallback((from: Square, to: Square, promotion?: PieceSymbol) => {
@@ -49,9 +57,12 @@ export function useChessGame(fen = DEFAULT_POSITION) {
     }, [game])
 
     return {
-        ...viewOf(game, resigned),
+        ...viewOf(game, ended),
         move,
-        resign: (color: Color) => setResigned(color),
+        resign: (color: Color) => setEnded(`${sideName(color)} resigned — ${sideName(other(color))} wins`),
+        timeOut: (color: Color) => setEnded(canCheckmate(game, other(color))
+            ? `${sideName(color)} ran out of time — ${sideName(other(color))} wins`
+            : `Draw — ${sideName(color)} ran out of time, but ${sideName(other(color))} cannot checkmate`),
     }
 }
 

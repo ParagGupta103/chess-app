@@ -9,8 +9,10 @@ You can use the app to learn chess and understand chess tactics from basics to a
 - **Play against the computer.** Choose White, Black or a random side, and pick one of 8 levels from Beginner to Maximum. The board flips when you play Black.
 - **Play a friend** on the same device.
 - **All the rules of chess.** Only legal moves are allowed, including castling, en passant and promotion (you choose the piece). Check, checkmate and draws (stalemate, insufficient material, threefold repetition and the 50-move rule) are detected.
+- **Drag or click to move.** Drag a piece with a mouse, finger or pen, or click it and then click where it should go.
 - **Move hints.** Selecting a piece shows its legal moves as dots, and pieces you can capture get a ring. The last move and a king in check are highlighted.
 - **Keyboard play.** Every square is a button, so you can use Tab and Enter to play.
+- **Chess clock.** Choose no clock, or a time control from 1 to 30 minutes, some with seconds added after each move (for example 3 min + 2 s). The clocks start with the first move. Running out of time loses the game, unless the opponent has too little material to checkmate, which makes it a draw. When short of time, the computer thinks faster.
 - **Resign** at any point to end a game.
 - **Game review.** After a game ends, **Analyze game** has Stockfish evaluate every position at full strength. Each move is labelled best, good, inaccuracy (?!), mistake (?) or blunder (??). For flagged moves, the better move is highlighted on the board. Each side gets an accuracy percentage and a count of inaccuracies, mistakes and blunders. An evaluation bar shows who is ahead. Step through the game with the move list, the buttons, or the ← → Home End keys.
 
@@ -32,13 +34,14 @@ Everything runs in the browser. No server is needed beyond static hosting.
 src/
   analysis/       move classification, accuracy and the hook that runs the analysis
   components/
-    NewGame/      setup screen: opponent, side and level
-    Game/         status line, board, and the Resign, Analyze game and New game buttons
+    NewGame/      setup screen: opponent, side, level and time control
+    Game/         status line, board, clocks, and the Resign, Analyze game and New game buttons
+    Clock/        one player's clock
     Analysis/     game review: evaluation bar, move list, summary and navigation
     Chessboard/   selecting pieces, highlighting moves, choosing a promotion piece
     Tile/         one square of the board
   engine/         Stockfish worker wrapper and difficulty levels
-  game/           game state hooks (rules, computer opponent) and settings
+  game/           game state hooks (rules, computer opponent, clock) and settings
 public/assets/images/   piece images
 ```
 

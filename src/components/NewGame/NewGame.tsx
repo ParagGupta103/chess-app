@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import './NewGame.css'
 import { levels } from '../../engine/levels'
+import { describeTimeControl, timeControls } from '../../game/clock'
 import type { GameSettings } from '../../game/settings'
 
 interface Props {
@@ -49,7 +50,7 @@ export default function NewGame({ initial, onStart }: Props) {
                 options={[['w', 'White'], ['b', 'Black'], ['random', 'Random']]}
                 onChange={color => update({ color })}
             />
-            <label className='level'>
+            <label className='field'>
                 Level
                 <select value={settings.level} onChange={e => update({ level: Number(e.target.value) })}>
                     {levels.map((level, i) =>
@@ -58,6 +59,14 @@ export default function NewGame({ initial, onStart }: Props) {
                 </select>
             </label>
         </>}
+        <label className='field'>
+            Time control
+            <select value={settings.timeControl} onChange={e => update({ timeControl: e.target.value })}>
+                {timeControls.map(key =>
+                    <option key={key} value={key}>{describeTimeControl(key)}</option>
+                )}
+            </select>
+        </label>
         <button type='submit' className='text-button'>Start game</button>
     </form>
 }
